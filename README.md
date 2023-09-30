@@ -70,7 +70,14 @@ Example
       "sidebar_content" => "front/teams standings"
     ]
 
-### ACTION routes content
+### ACTION routes actions
+
+In this case there is no layout and no variables. The "actions" array is just a list of strings divided in two parts. The meaning is the same as for the VIEW routes. The string will reference an action defined in the View-Model file.
+
+    "actions" => [
+      "front/usermanagement login"
+    ],
+        
 
 ### View-Model files
 
