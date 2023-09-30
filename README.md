@@ -83,30 +83,30 @@ In this case there is no layout and no variables. The "actions" array is just a 
 
 These files are useful for combining data coming from database (or other sources) and HTML code to produce widgets ready to display in a page. You can define actions as well.
 
-<?php
+    <?php
 
-    return [
-      "calls" => [
-        [
-          "sql" => "<sql query>",
-          "data" => function($args) {
-              return [...];
-          }
-        ],
-        ...
-      ],
-    
-      "widgets" => [
-        "<widget name>" => function($data, $c) {
-            $html = ...
-            return $html;
-        },
-      ],
-      
-      "actions" => [
-        "<action name>" => function($data, $c, $args, $get, $post, $files, $response) {
+        return [
+          "calls" => [
+            [
+              "sql" => "<sql query>",
+              "data" => function($args) {
+                  return [...];
+              }
+            ],
             ...
-            return $response;
-        }
-      ]
-    ];
+          ],
+        
+          "widgets" => [
+            "<widget name>" => function($data, $c) {
+                $html = ...
+                return $html;
+            },
+          ],
+          
+          "actions" => [
+            "<action name>" => function($data, $c, $args, $get, $post, $files, $response) {
+                ...
+                return $response;
+            }
+          ]
+        ];
