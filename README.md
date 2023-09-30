@@ -110,3 +110,36 @@ These files are useful for combining data coming from database (or other sources
             }
           ]
         ];
+
+### Services
+
+The generated Slim Application defines some default services and others in which you can write the custom code for your App:
+
+#### App
+
+- getStatus($response, $data)
+- setStatus($attr="")
+
+- add_debug_info($s)
+
+- encrypt
+- decrypt
+
+- populateVars($s, $vars)
+
+- setErrors($errors_text)
+
+#### Db
+
+- db_select($sql, $data, $cache=true)
+- db_insert($sql, $data)
+- db_update($sql, $data)
+- db_delete($sql, $data)
+
+- empty_cache()
+- 
+#### Utils
+
+### Html
+
+
