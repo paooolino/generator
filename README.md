@@ -117,6 +117,8 @@ The generated Slim Application defines some default services and others in which
 
 #### App
 
+Contains generic functions, useful in all projects.
+
 - getStatus($response, $data)
 - setStatus($attr="")
 
@@ -137,9 +139,26 @@ The generated Slim Application defines some default services and others in which
 - db_delete($sql, $data)
 
 - empty_cache()
-- 
+
+- select($table)
+- (alias) selectAll($table)
+
+- selectById($table, $id)
+- (alias) selectOne($table, $id)
+- selectBy($table, $field, $value)
+- (alias)selectOneBy($table, $field, $value)
+- insert($table, $fields)
+- update($table, $id, $fields)
+
+- lastInsertId()
+- rawQuery($query, $data, $cache=true)
+ 
 #### Utils
 
+Custom function useful for the current web application.
+
 ### Html
+
+Html components builder, specific for the current web application.
 
 
