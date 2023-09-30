@@ -56,3 +56,22 @@ As best practice, we recommend to append _ACTION to the route name so you can in
 
 - "LOGIN" should be the route name of the page displaying the login form
 - "LOGIN_ACTION" should contain the code that checks for the login credentials.
+
+### VIEW routes content
+
+The content keys are variables that will be available in the layout file.
+The content values are strings, divided in two parts by a single spance. The first part is the View-Model file in which you can find a collection of widgets. The second part is the widget name. What's a View-Modell file? read below.
+
+Example
+
+    "content" => [
+      "pre_content" => "front/home pre_content",
+      "content" => "front/home content",
+      "sidebar_content" => "front/teams standings"
+    ]
+
+### ACTION routes content
+
+### View-Model files
+
+
