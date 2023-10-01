@@ -3,7 +3,13 @@ A PHP script that generates a Slim Framework application source code starting fr
 
 ## usage
 
-php generator/generator.php
+1. clone this repository
+2. php generator/generator.php
+3. a new generated_app folder is created. cd generatet_app
+4. compoer install to install dependencies.
+5. configure local servet to point to the generated_app/htdocs folder through generator-app.local domain
+6. create a lcoal database and edit database name in settings.dev app
+7. point browser to http://generator-app.local/
 
 ## configuration
 
