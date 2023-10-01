@@ -135,22 +135,26 @@ Contains generic functions, useful in all projects.
 
 #### Db
 
-- db_select($sql, $data, $cache=true)
-- db_insert($sql, $data)
-- db_update($sql, $data)
-- db_delete($sql, $data)
+Base functions
+
+- select($sql, $data, $cache=true)
+- insert($sql, $data)
+- update($sql, $data)
+- delete($sql, $data)
+
+Cache management
 
 - empty_cache()
 
-- select($table)
-- (alias) selectAll($table)
+Helpers
 
-- selectById($table, $id)
-- (alias) selectOne($table, $id)
+- selectAll($table)
+- selectById/selectOne($table, $id)
 - selectBy($table, $field, $value)
-- (alias)selectOneBy($table, $field, $value)
-- insert($table, $fields)
-- update($table, $id, $fields)
+- table_insert($table, $fields, $autoAddFields=false)
+- table_update($table, $id, $fields, $autoAddFields=false)
+
+Others
 
 - lastInsertId()
 - rawQuery($query, $data, $cache=true)
@@ -175,6 +179,7 @@ The _url variables represents the http path to reach the resource
 - uploads_dir (relative to webroot: eg. '/uploads')
 - template_dir (relative to webroot: eg. '/templates/default')
 - debug_infos
+- autoAddFields
 
 ## AppInit middleware
 
