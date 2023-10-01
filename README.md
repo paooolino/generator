@@ -131,6 +131,8 @@ Contains generic functions, useful in all projects.
 
 - setErrors($errors_text)
 
+- getTemplateUrl() used to link the assets in the templates
+
 #### Db
 
 - db_select($sql, $data, $cache=true)
@@ -160,5 +162,26 @@ Custom function useful for the current web application.
 ### Html
 
 Html components builder, specific for the current web application.
+
+## settings
+
+The _path variables represents the internal server folder;
+The _dir variables represents the internal server folder relative to the webroot_path;
+The _url variables represents the http path to reach the resource
+
+- app_version
+- app_url
+- webroot_path (eg. __DIR__ or __DIR__ . '/htdocs')
+- uploads_dir (relative to webroot: eg. '/uploads')
+- template_dir (relative to webroot: eg. '/templates/default')
+- debug_infos
+
+## AppInit middleware
+
+This middleware is attached to the Slim Application and populates the following variables:
+
+app->settings
+app->router
+
 
 
