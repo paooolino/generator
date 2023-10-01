@@ -1,0 +1,151 @@
+<?php
+namespace WebApp\Service;
+
+use Psr\Container\ContainerInterface;
+use PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+
+class Mailer {
+  private $app;
+  private $db;
+
+  public function __construct(ContainerInterface $c) {
+    $this->app = $c->get('app');  
+    $this->db = $c->get('db');  
+
+    $this->db->check_db("email_templates", [
+      "template_name",
+      "subject",
+      "body",
+      "available_data"
+    ]);
+  }
+
+  private function insertInMailQueue() {
+
+  }
+
+  private function log_mail() {
+
+  }
+
+  /**
+   *  
+   *  $opts = [
+   *    "to" => mandatory
+   *    "subject" => mandatory
+   *    "body" => mandatory
+   *    "fromaddress" => optional (default: in settings)
+   *    "fromname" => optional (default: in settings)
+   *    "attachment" => optional (default: NULL)
+   *    "defer" => optional (default: false)
+   *  ]
+   *  $defer  false oppure il timestamp mysql due_to
+   *  es "tra un'ora" = date("Y-m-d H:i:s", time() + 60*60);
+   */
+  public function send($opts) {
+    $to = $opts["to"];
+    $subject = $opts["subject"];
+    $body = $opts["body"];
+    $fromaddress = $opts["fromaddress"] ?? $this->app->settings["email"]["fromaddress"];
+    $fromname = $opts["fromname"] ?? $this->app->settings["email"]["fromname"];
+    $attachment = $opts["attachment"] ?? NULL;
+    $defer = $opts["defer"] ?? false;
+
+    if ($defer !== false) {
+      $this->insertInMailQueue([
+        "to" => $to,
+        "subject" => $subject,
+        "body" => $body,
+        "due_to" => $defer
+      ]);
+      return;
+    }    
+
+    $mail = new PHPMailer\PHPMailer(true); 
+
+    try {
+      if ($smtp_host != "") {
+        $mail->isSMTP();
+        $mail->Host       = $smtp_host;
+        $mail->SMTPAuth   = true;
+        $mail->Username   = $smtp_user;
+        $mail->Password   = $smtp_pass;
+        $mail->SMTPSecure = "ssl"; //PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+        $mail->Port       = 465;                                    
+      }
+      $mail->CharSet = 'UTF-8';
+      $mail->setFrom($fromaddress, $fromname);
+      $mail->AddAddress($to);
+      $mail->Subject = $subject;
+      $mail->Body = $body;
+      $mail->isHTML(true);   
+      $mail->AltBody = strip_tags($body);
+      if ($attachment != NULL) {
+        $mail->addAttachment($attachment);
+      }
+      $result = $mail->send();
+    } catch (\Exception $e) {
+      // errore durante l'invio
+      $result = $e->getMessage();
+    }
+    $this->log_mail([
+      "from_address" => $fromaddress, 
+      "from_name" => $fromname, 
+      "to" => $to, 
+      "subject" => $subject, 
+      "body" => $body, 
+      "result" => $result
+    ]);
+
+    return $result;
+  }
+
+  public function send_test($to) {
+    // e invio la mail
+    $mail = new PHPMailer\PHPMailer(true);
+    $subject = "Test mail";
+    $html = "Test mail body. <b>html bold</b>.<br><br>----";
+    try {
+      $mail->CharSet = 'UTF-8';
+      $mail->setFrom('noreply@ivctm.com', 'N.E.S.O.');
+      $mail->AddAddress($to);
+      $mail->Subject = $subject;
+      $mail->Body = $html;
+      $mail->isHTML(true);   
+      $mail->AltBody = strip_tags($html);
+      $mail->send();
+    } catch (\Exception $e) {
+      // errore durante l'invio
+      echo $e->getMessage();
+    }
+  }
+
+  private function firma($id_progetto) {
+    return '';
+  }
+
+  private function intestazione_mail($id_progetto) {
+    return '';
+  }
+
+  public function populatevars($s, $vars) {
+    foreach ($vars as $k => $v) {
+      if ($k == "data_nascita") {
+        if (isset($v["g"]) && isset($v["m"]) && isset($v["a"]))
+          $v = implode("/", [$v["g"], $v["m"], $v["a"]]);
+      }
+      if (is_array($v)) {
+        continue;
+      }
+      $s = str_replace("{{" . $k . "}}", $v, $s);
+    }
+    return $s;
+  }
+
+  public function getMail($template_name, $part_name, $data) {
+    $sql = "SELECT * FROM email_templates WHERE template_name = ?";
+    $result = $this->db->select($sql, [$template_name]);
+    return "";
+  }
+}

@@ -1,0 +1,14 @@
+<?php
+
+return [
+  "calls" => [],
+  "widgets" => [
+    "title" => function($data, $c) {
+      return "home title";
+    },
+    "text" => function($data, $c) {
+      return "home text";
+    }
+  ],
+  "actions" => []
+];

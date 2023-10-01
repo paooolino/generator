@@ -1,0 +1,100 @@
+<?php
+namespace WebApp\Service;
+
+use Psr\Container\ContainerInterface;
+
+class VmApi {
+  private $c;
+  private $db;
+  private $utils;
+  private $app;
+
+  public function __construct(ContainerInterface $c) {
+    $this->c = $c;
+    $this->db = $c->get("db");
+    $this->utils = $c->get("utils");
+    $this->app = $c->get("app");
+  }
+
+  /**
+   *  Questa funzione ritorna un array associativo contenente
+   * 
+   *  "call_name" il nome della chiamata (per debug)
+   *  "widgets" i widget html da passare al template
+   *  "actions" i risultati delle azioni eseguite
+   *  "data" i dati grezzi ottenuti dalle chiamate al mysql (per debug)
+   */
+  public function call($call_name, $actions=[], $args, $get=[], $post=[], $files=[]) {
+    // carica il file di configurazione
+    $config = require __DIR__ . '/../Vm/' . $call_name . '.php';
+    
+    $this->app->add_debug_info("[VM] required file: " . (__DIR__ . '/../Vm/' . $call_name . '.php'));
+
+    // recupera i dati dalle chiamate al db
+    $calls = $config["calls"] ?? [];
+    $data = [];
+    foreach ($calls as $call) {
+      // se c'è una condizione non verificata, ritorna vuoto
+      if (isset($call["condition"])) {
+        if (!$call["condition"]($args, $get, $post, $files)) {
+          $data[] = [];
+          continue;
+        }
+      }
+
+      // ottiene i parametri per la query
+      $params = [];
+      if (isset($call["data"]))
+        $params = $call["data"]($args, $get, $post, $files);
+
+      $this->app->add_debug_info("[VM] calling query:: " . print_r([
+        "sql" => $call["sql"],
+        "params" => $params
+      ], 1));
+      
+      $data[] = $this->db->db_select($call["sql"], $params);
+    }
+
+    // prepara i contenuti da restituire
+    $result = [
+      "call_name" => $call_name,  // serve per identificare la chiamata (per debug)
+      "widgets" => [],
+      "actions" => [],
+      "data" => $data
+    ];
+
+    // eseguo i widget
+    $widgets = $config["widgets"] ?? [];
+    foreach ($widgets as $w_name => $w_value) {
+      if (is_string($w_value)) {
+        //
+      } elseif (is_callable($w_value)) {
+        /*echo "<!--\r\n";
+        echo $w_name;
+        echo "-->\r\n";*/
+        $w_value = $w_value($data, $this->c, $args, $get, $post, $files);
+      } else {
+        $w_value = "";
+      }
+      $result["widgets"][$w_name] = $w_value;
+    }
+
+    // esegue solo le azioni passate
+    foreach ($actions as $action) {
+      $result["actions"][$action] = $config["actions"][$action]($data, $this->c, $args, $get, $post, $files);
+    }
+
+    // stampa di debug
+    /*echo "<!-- " . print_r([
+      "call_name" => $result["call_name"],
+      "data" => $result["data"]
+    ], 1) . " -->";*/
+    $this->app->add_debug_info("[VM] result call: " . print_r([
+      "call_name" => $result["call_name"],
+      "data" => $result["data"]
+    ], 1));
+
+    return $result;
+  }
+
+}

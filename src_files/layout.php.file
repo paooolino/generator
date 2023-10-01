@@ -1,0 +1,6 @@
+<?php require __DIR__ . '/partials/header.php'; ?>
+
+<h1><php echo $page_title; ?></h1>
+<?php echo $page_text; ?>
+
+<?php require __DIR__ . '/partials/footer.php'; ?>

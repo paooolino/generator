@@ -1,0 +1,119 @@
+<?php
+namespace WebApp\Service;
+
+class Upload {
+  /**
+   *  Percorso assoluto della directory uploads sulla macchina server.
+   *  Senza trailing slash. e.g. 
+   *    __DIR__ . '/htdocs/uploads';
+   */
+  private $uploads_path;
+
+  /**
+   *  Uri con cui raggiungere la directory uploads.
+   *  Senza trailing slash. e.g.
+   *    "/uploads";
+   */
+  private $uploads_route;
+
+  public function __construct() {
+    
+  }
+
+  public function setUploadsPath($uploads_path) {
+    $this->uploads_path = $uploads_path;
+  }
+
+  public function setUploadsRoute($uploads_route) {
+    $this->uploads_route = $uploads_route;
+  }
+
+  public function getUploadsPath() {
+    return $this->uploads_path;
+  }
+
+  public function getUploadsRoute() {
+    return $this->uploads_route;
+  }
+  
+  /**
+   *  Copia il file inviato nella cartella del filesystem.
+   *  
+   *  - Il file viene salvato in una cartella <uploads>/anno/mese/giorno/ per
+   *  evitare di creare cartelle contenenti migliaia di files.
+   *  - Il nome del file rimane lo stesso di quello caricato, in caso di duplicati 
+   *  aggiunge un _1, _2, ... alla fine
+   * 
+   *  In caso di successo ritorna:
+   *    "result" => "OK"
+   *    "filename" => 
+   *  In caso di errore ritorna:
+   *    "result" => "KO"
+   *    "errname" => <a string describing the upload error>
+   *    "dump" => a dump of the _FILES array
+   *
+   *  @return array   
+   */
+  public function upload($uploadedFile) {
+    if ($uploadedFile->getError() === UPLOAD_ERR_OK) {
+      // la directory Y/m/d in cui verrà salvato il file.
+      $file_upload_dir = implode(DIRECTORY_SEPARATOR, [
+        date('Y'),
+        date('m'),
+        date('d')
+      ]);
+      $uri_upload_dir = implode('/', [
+        date('Y'),
+        date('m'),
+        date('d')
+      ]);
+
+      // il percorso completo della directory sul server in cui verrà salvato il file.
+      $file_upload_path = $this->uploads_path . DIRECTORY_SEPARATOR . $file_upload_dir;
+      // crea le cartelle se non esistono.
+      if (!file_exists($file_upload_path)) {
+        mkdir($file_upload_path, 0777, true);
+      }
+
+      // il percorso completo del file
+      $file_upload = $file_upload_path . DIRECTORY_SEPARATOR . basename($uploadedFile->getClientFilename());
+      // verifico l'esistenza di duplicati e in caso cambio il nome
+      $file_info = pathinfo($file_upload);
+      $n = 1;
+      while (file_exists($file_upload)) {
+        $newname = $file_info["filename"] . "_" . $n . "." . $file_info["extension"]; 
+        $file_upload = $file_upload_path . DIRECTORY_SEPARATOR . $newname;
+        $n++;
+      }
+      
+      // muove il file
+      $uploadedFile->moveTo($file_upload);
+
+      // ricava l'uri del file
+      $file_uri = implode('/', [
+        $uri_upload_dir,
+        basename($file_upload)
+      ]);
+
+      return ["result" => "OK", "filename" => $file_upload, "uri" => $file_uri];
+    } else {
+      return [
+        "result" => "KO", 
+        "errname" => $this->_getUploadErrName($uploadedFile->getError())
+      ];
+    }
+  }
+
+  private function _getUploadErrName($errno) {
+    $errors = [
+      1 => "upload-err-ini-size",
+      2 => "upload-err-form-size",
+      3 => "upload-err-partial",
+      4 => "upload-err-no-file",
+      5 => "upload-err-no-tmp-dir",
+      6 => "upload-err-cant-write",
+      7 => "upload-err-extension"
+    ];
+    return $errors[$errno];
+  }
+}

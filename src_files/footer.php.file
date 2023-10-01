@@ -1,0 +1,10 @@
+<p>footer</p>
+
+<?php 
+  if (
+    (isset($app->settings["debug_infos"]) && $app->settings["debug_infos"] == true)
+      ||(isset($_GET["DBG"]) && $_GET["DBG"] == 1)
+  ) {
+    echo $app->get_debug_info(); 
+  }
+?>

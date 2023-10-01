@@ -1,0 +1,13 @@
+<?php
+use Slim\App as SlimApp;
+
+return function (SlimApp $app) {
+  $app->add('WebApp\Middleware\ErrorpageMiddleware');
+
+  $app->add('WebApp\Middleware\AppInit');
+
+  $app->addRoutingMiddleware();
+
+  $errorMiddleware = $app->addErrorMiddleware(true, false, false);
+};
+

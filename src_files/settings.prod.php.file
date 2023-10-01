@@ -1,0 +1,30 @@
+<?php
+ini_set("display_errors", 0);
+date_default_timezone_set("Europe/Rome");
+setlocale(LC_TIME, "it_IT");
+header("Cache-Control: no-cache");
+
+$settings = [];
+
+$settings["app_version"] = "0.0.1";
+$settings["app_url"] = "http://generator-app.local";
+$settings["webroot_path"] = __DIR__ . '/htdocs';
+$settings["uploads_dir"] = "/uploads";
+$settings["template_dir"] = "/templates/default";
+$settings["debug_infos"] = true;
+$settings["autoAddFields"] = true;
+
+$settings["db"] = [];
+$settings["db"]["host"] = 'localhost';
+$settings["db"]["username"] = 'root';
+$settings["db"]["password"] = '';
+$settings["db"]["dbname"] = '';
+
+$settings["email"] = [];
+$settings["email"]["fromaddress"] = "admin@example.com";
+$settings["email"]["fromname"] = "My App Admin";
+$settings["email"]["smtp_host"] = "";
+$settings["email"]["smtp_user"] = "";
+$settings["email"]["smtp_pass"] = "";
+
+return $settings;

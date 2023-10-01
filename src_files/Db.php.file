@@ -1,0 +1,136 @@
+<?php
+namespace WebApp\Service;
+
+use \PDO;
+use \PDOException;
+
+class Db {
+  private $conn;
+  private $_cache = [];
+
+  public function __construct($settings) {
+    $settings = $settings["db"];
+    try {
+      $this->conn = new PDO(
+        'mysql:host=' . $settings["host"] . ';dbname=' . $settings["dbname"], 
+        $settings["username"], 
+        $settings["password"],
+        array(
+          PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8mb4, sql_mode=""',
+          PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+        )
+      );
+    } catch (PDOException $e) {
+      //return false;
+      die("db connection error");
+    }
+  }
+
+  public function empty_cache() {
+    $this->_cache = [];
+  }
+
+  public function lastInsertId() {
+    return $this->conn->lastInsertId();
+  }
+
+  public function table_insert(String $table, Array $input):Int {
+    $fields = array_keys($input);
+    $fields = array_map(function($f) { return '`' . $f . '`';}, $fields);
+    $fields = implode(', ', $fields);
+
+    $placeholders = implode(', ', array_fill(0, count($input),'?'));
+    $sql = "INSERT INTO $table ($fields) VALUES ($placeholders)";
+
+    $this->db_insert($sql, array_values($input));
+    return $this->conn->lastInsertId();
+  }
+
+  public function table_update(String $table, Int $id, Array $data): Int {
+    $updates = [];
+    foreach ($data as $k => $v) {
+      $updates[] = $k . ' = ?';
+    }
+    $sql_updates = implode(', ', $updates);
+
+    $sql = "UPDATE $table SET $sql_updates WHERE id = ?";
+    $data = array_merge(
+      array_values($data), 
+      [$id]
+    );
+    $stmt = $this->db_update($sql, $data);
+    return $stmt->rowCount();
+  }
+  
+  public function selectOne($table, $id) {
+    return $this->selectById($table,$id);
+  }
+
+  public function selectById(String $table, Int $id): Array {
+    $sql = "SELECT * FROM $table WHERE id = ?";
+    $data = [$id];
+
+    $rows = $this->db_select($sql, $data);
+    if (count($rows) == 0)
+      return [];
+    return $rows[0];
+  }
+
+  public function selectBy($table, $field, $value) {
+    $sql = "SELECT * FROM $table WHERE `$field` = ?";
+    $data = [$value];
+
+    $rows = $this->db_select($sql, $data);
+
+    return $rows;
+  }
+
+  public function selectAll(String $table): Array {
+    $sql = "SELECT * FROM $table";
+    return $this->db_select($sql, []);
+  }
+
+  public function rawQuery($sql) {
+    try {
+      return $this->conn->exec($sql);
+    } catch(PDOException $e) {
+
+    }
+  }
+
+  public function select($query, $data=[], $cache=true) {
+    $cache_index = md5($query . json_encode($data));
+    if ($cache && isset($this->_cache[$cache_index])) {
+      return $this->_cache[$cache_index];
+    }
+
+    $sth = $this->conn->prepare($query);
+    try {
+      $result = $sth->execute($data);
+    } catch(\PDOException $err) {
+
+    }
+    $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
+
+    $cache && $this->_cache[$cache_index] = $rows;
+    return $rows;
+  }
+
+  public function insert($query, $data) {
+    $sth = $this->conn->prepare($query);
+    $result = $sth->execute($data);
+    return $sth;
+  }
+
+  public function update($query, $data) {
+    $sth = $this->conn->prepare($query);
+    $result = $sth->execute($data);
+    return $sth;
+  }
+
+  public function delete($query, $data) {
+    $sth = $this->conn->prepare($query);
+    $result = $sth->execute($data);
+    return $sth;
+  }
+}

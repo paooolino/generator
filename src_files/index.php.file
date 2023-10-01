@@ -1,0 +1,19 @@
+<?php
+use DI\ContainerBuilder;
+use Slim\App as SlimApp;
+
+require __DIR__ . '/../vendor/autoload.php';
+
+session_start();
+
+date_default_timezone_set("Europe/Rome");
+
+// Create Container using PHP-DI 
+$containerBuilder = new ContainerBuilder();
+$containerBuilder->addDefinitions(__DIR__ . '/../app/dependencies.php');
+$container = $containerBuilder->build();
+
+// create slim App
+$app = $container->get(SlimApp::class);
+
+$app->run();

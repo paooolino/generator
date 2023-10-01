@@ -1,0 +1,113 @@
+<?php
+namespace WebApp\Service;
+
+use Psr\Container\ContainerInterface;
+
+use Dflydev\FigCookies\FigRequestCookies;
+use Dflydev\FigCookies\FigResponseCookies;
+use Dflydev\FigCookies\SetCookie;
+
+class App {
+  
+  private $debug_info = [];
+
+  private $status;
+
+  private $errors = [];
+
+  private $password_encryption;
+
+  private $service_cookie_name;
+
+  public $router;
+  
+  public $settings;
+
+  public function __construct(ContainerInterface $c) {
+    $this->status = [
+    ];
+  }
+
+  public function initStatus($request) {
+    $service_cookie = FigRequestCookies::get($request, $this->service_cookie_name);
+    $data = json_decode($service_cookie->getValue(), true);
+    
+    if ($data == null)
+      $data = [];
+    
+    foreach ($data as $k => $v) {
+      $this->status[$k] = $v;
+    }
+  }
+
+  public function getStatus($attr="") {
+    if ($attr == "")
+      return $this->status;
+    
+    if (isset($this->status[$attr]))
+      return $this->status[$attr];
+    
+    return "";
+  }
+
+  public function setStatus($response, $data) {
+    foreach ($data as $k => $v) {
+      $this->status[$k] = $v;
+    }
+ 
+    $response = FigResponseCookies::set($response, 
+      SetCookie::create($this->service_cookie_name)
+        ->withValue(json_encode($this->status))
+        ->withPath('/')
+    );
+    return $response;
+  }
+
+  public function add_debug_info($s) {
+    $this->debug_info[] = $s;
+  }
+  
+  public function get_debug_info() {
+    $html = "";
+    $html .= "<!--\r\n";
+    $html .= print_r($this->debug_info, true);
+    $html .= "-->\r\n";
+    return $html;
+  }
+  
+  public function encrypt($s) {
+    $encrypted_string = openssl_encrypt($s, "AES-128-ECB", $this->password_encryption);
+    return $encrypted_string;
+  }
+
+  public function decrypt($s) {
+    $decrypted_string = openssl_decrypt($s, "AES-128-ECB", $this->password_encryption);
+    return $decrypted_string;
+  }
+
+  public function addError($errmsg) {
+    $this->errors[] = $errmsg;
+  }
+
+  public function addErrors($arr) {
+    $this->errors = array_merge($this->errors, $arr);
+  }
+
+  public function getErrors() {
+    return $this->errors;
+  }
+
+  public function populatevars($s, $vars) {
+    foreach ($vars as $k => $v) {
+      if ($k == "data_nascita") {
+        if (isset($v["g"]) && isset($v["m"]) && isset($v["a"]))
+          $v = implode("/", [$v["g"], $v["m"], $v["a"]]);
+      }
+      if (is_array($v)) {
+        continue;
+      }
+      $s = str_replace("{{" . $k . "}}", $v, $s);
+    }
+    return $s;
+  }
+}

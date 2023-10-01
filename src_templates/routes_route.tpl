@@ -1,0 +1,1 @@
+    $app->{{METHOD}}('{{URL}}', WebApp\Controller\{{CLASSNAME}}::class)->setName('{{ROUTE_NAME}}');

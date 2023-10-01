@@ -1,0 +1,29 @@
+<?php
+namespace WebApp\Middleware;
+
+use Psr\Container\ContainerInterface;
+use Slim\App as SlimApp;
+
+class ErrorpageMiddleware {
+  private $c;
+
+  public function __construct(ContainerInterface $c) {
+    $this->c = $c;
+  }
+  
+  public function __invoke($request, $handler) {
+    $app = $this->c->get("app");
+
+    // vado avanti
+    $response = $handler->handle($request);
+
+    if (count($app->getErrors()) > 0) {
+      $_SESSION["errors"] = $app->getErrors();
+
+      $error_page_url = $app->router->urlFor("ERROR_PAGE");
+      $response = $response->withRedirect($error_page_url);
+    }
+
+    return $response;
+  } 
+}

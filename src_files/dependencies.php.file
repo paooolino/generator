@@ -1,0 +1,75 @@
+<?php
+use Psr\Container\ContainerInterface;
+use Slim\Views\PhpRenderer;
+use Slim\App as SlimApp;
+use Slim\Factory\AppFactory;
+use WebApp\Middleware\AppInit;
+use Slim\Interfaces\RouteCollectorInterface;
+use WebApp\Service\App;
+use WebApp\Service\Db;
+use WebApp\Service\VmApi;
+use WebApp\Service\Upload;
+use WebApp\Service\Html;
+use WebApp\Service\Utils;
+use Intervention\Image\ImageManager;
+
+return [
+  SlimApp::class => function(ContainerInterface $c) {
+    $app = AppFactory::createFromContainer($c);
+
+    // Register routes
+    (require __DIR__ . '/routes.php')($app);
+    
+    // Register middleware
+    (require __DIR__ . '/middleware.php')($app);
+
+    return $app;
+  },
+
+  'settings' => function () {
+    $env = file_get_contents(__DIR__ . "/../environment");
+    return require __DIR__ . '/../settings.' . $env . '.php';
+  },
+
+  'view' => function() {
+    $templatePath = __DIR__ . '/../templates';
+    return new PhpRenderer($templatePath);
+  },
+
+  'app' => function(ContainerInterface $c) {
+    return new App($c);
+  },
+
+  'vm' => function(ContainerInterface $c) {
+    return new VmApi($c);
+  },
+
+  'html' => function(ContainerInterface $c) {
+    return new Html($c);
+  },
+
+  'utils' => function(ContainerInterface $c) {
+    return new Utils($c);
+  },
+
+  "db" => function(ContainerInterface $c) {
+    return new Db($c->get('settings'));
+  },
+
+  "upload" => function(ContainerInterface $c) {
+    $uploads_path = $c->get('settings')["uploads_path"];
+    $uploads_route = $c->get('settings')["uploads_route"];
+    $uploader = new Upload();
+    $uploader->setUploadsPath($uploads_path);
+    $uploader->setUploadsRoute($uploads_route);
+    return $uploader;
+  },
+
+  "image" => function (ContainerInterface $c) {
+    return new ImageManager(['driver' => 'gd']);
+  },
+
+  AppInit::class => function(ContainerInterface $c) {
+    return new AppInit($c->get('settings'), $c->get("app"), $c->get("view"));
+  }
+];

@@ -1,0 +1,13 @@
+<?php
+namespace WebApp\Service;
+
+use Psr\Container\ContainerInterface;
+
+class Html {
+  private $c;
+
+  public function __construct(ContainerInterface $c) {
+    $this->c = $c;
+  }
+
+}
