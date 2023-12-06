@@ -24,7 +24,7 @@ class VmApi {
    *  "actions" i risultati delle azioni eseguite
    *  "data" i dati grezzi ottenuti dalle chiamate al mysql (per debug)
    */
-  public function call($call_name, $actions=[], $args, $get=[], $post=[], $files=[]) {
+  public function call($call_name, $actions=[], $args, $get=[], $post=[], $files=[], $response) {
     // carica il file di configurazione
     $config = require __DIR__ . '/../Vm/' . $call_name . '.php';
     
@@ -81,7 +81,7 @@ class VmApi {
 
     // esegue solo le azioni passate
     foreach ($actions as $action) {
-      $result["actions"][$action] = $config["actions"][$action]($data, $this->c, $args, $get, $post, $files);
+      $result["actions"][$action] = $config["actions"][$action]($data, $this->c, $args, $get, $post, $files, $response);
     }
 
     // stampa di debug
